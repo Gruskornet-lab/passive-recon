@@ -1,0 +1,17 @@
+# Passive Recon — exempelfil för in-scope targets
+# En target per rad. Wildcards och exakta hosts stöds.
+# Kommentarer (rader som börjar med #) och tomma rader ignoreras.
+
+# Visma (exempelprogrammet på Intigriti)
+*.visma.com
+*.visma.net
+
+# Signicat
+*.signicat.com
+*.signicat.io
+
+# Exakt host (ingen wildcard)
+api.example.com
+
+# URL strippas till hostname automatiskt
+# https://banking.example.com/some/path

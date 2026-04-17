@@ -1,0 +1,75 @@
+name: Passive Recon
+
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: 'In-scope targets, en per rad (wildcards OK)'
+        required: true
+        type: string
+      program_name:
+        description: 'Programnamn (används i filnamn och rapport)'
+        required: false
+        type: string
+      wayback_limit:
+        description: 'Max Wayback-URLs per base-domän'
+        required: false
+        type: string
+        default: '50000'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: passive-recon
+  cancel-in-progress: false
+
+jobs:
+  recon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+      - name: Write targets file
+        env:
+          TARGETS: ${{ inputs.targets }}
+        run: printf '%s\n' "$TARGETS" > targets.txt
+
+      - name: Run passive recon
+        env:
+          PROGRAM_NAME: ${{ inputs.program_name }}
+          WAYBACK_LIMIT: ${{ inputs.wayback_limit }}
+        run: |
+          args=(--file targets.txt --output reports/ --wayback-limit "${WAYBACK_LIMIT:-50000}")
+          [ -n "$PROGRAM_NAME" ] && args+=(--name "$PROGRAM_NAME")
+          python passive_recon.py "${args[@]}"
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: passive-recon-report
+          path: reports/
+          retention-days: 90
+
+      - name: Commit report to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || {
+            git commit -m "recon: $(date -u +%Y-%m-%d) ${{ inputs.program_name }}"
+            git push
+          }

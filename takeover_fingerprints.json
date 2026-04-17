@@ -1,0 +1,142 @@
+[
+  {
+    "service": "GitHub Pages",
+    "cname": ["github.io"],
+    "fingerprint": ["There isn't a GitHub Pages site here."],
+    "status": "Vulnerable",
+    "notes": "Kräver att CNAME pekar på ett icke-registrerat GitHub-konto eller borttagen repo."
+  },
+  {
+    "service": "Heroku",
+    "cname": ["herokuapp.com", "herokudns.com"],
+    "fingerprint": ["No such app", "herokucdn.com/error-pages/no-such-app.html"],
+    "status": "Vulnerable",
+    "notes": "Heroku-appen existerar inte längre. Registrera appen för takeover."
+  },
+  {
+    "service": "AWS S3",
+    "cname": ["s3.amazonaws.com", "s3-website", "s3-website-us-east-1.amazonaws.com", "s3-website-us-west-2.amazonaws.com", "s3-website-ap-southeast-1.amazonaws.com", "s3-website-eu-west-1.amazonaws.com"],
+    "fingerprint": ["NoSuchBucket", "The specified bucket does not exist"],
+    "status": "Vulnerable",
+    "notes": "S3-bucket existerar inte. Kräver att bucketnamnet är tillgängligt."
+  },
+  {
+    "service": "Azure App Service",
+    "cname": ["azurewebsites.net", "cloudapp.net", "cloudapp.azure.com", "trafficmanager.net"],
+    "fingerprint": ["404 Web Site not found", "Microsoft Azure App Service"],
+    "status": "Vulnerable",
+    "notes": "Azure Web App inte provisionerad."
+  },
+  {
+    "service": "Fastly",
+    "cname": ["fastly.net", "fastlylb.net"],
+    "fingerprint": ["Fastly error: unknown domain", "Please check that this domain has been added to a service"],
+    "status": "Vulnerable",
+    "notes": "Fastly CDN-backend inte konfigurerad."
+  },
+  {
+    "service": "Vercel",
+    "cname": ["cname.vercel-dns.com", "vercel.app"],
+    "fingerprint": ["The deployment could not be found on Vercel"],
+    "status": "Vulnerable",
+    "notes": "Vercel-deployment saknas. Registrera projekt med matchande domän."
+  },
+  {
+    "service": "Netlify",
+    "cname": ["netlify.app", "netlify.com"],
+    "fingerprint": ["Not Found - Request ID", "netlify"],
+    "status": "Vulnerable",
+    "notes": "Netlify-sajt inte konfigurerad."
+  },
+  {
+    "service": "Read the Docs",
+    "cname": ["readthedocs.io"],
+    "fingerprint": ["unknown to Read the Docs", "does not exist on Read the Docs"],
+    "status": "Vulnerable",
+    "notes": "Dokumentationsprojekt existerar inte på RTD."
+  },
+  {
+    "service": "Ghost",
+    "cname": ["ghost.io"],
+    "fingerprint": ["The thing you were looking for is no longer here", "ghost.io"],
+    "status": "Vulnerable",
+    "notes": "Ghost-blogg inte konfigurerad."
+  },
+  {
+    "service": "WP Engine",
+    "cname": ["wpengine.com"],
+    "fingerprint": ["The site you were looking for couldn't be found"],
+    "status": "Vulnerable",
+    "notes": "WordPress-installation på WP Engine saknas."
+  },
+  {
+    "service": "Zendesk",
+    "cname": ["zendesk.com"],
+    "fingerprint": ["Help Center Closed", "Hosted by Zendesk"],
+    "status": "Vulnerable",
+    "notes": "Zendesk Help Center inte aktiverat."
+  },
+  {
+    "service": "Tumblr",
+    "cname": ["tumblr.com"],
+    "fingerprint": ["There's nothing here.", "Whatever you were looking for doesn't currently exist"],
+    "status": "Vulnerable",
+    "notes": "Tumblr-blogg borttagen eller aldrig skapad."
+  },
+  {
+    "service": "Shopify",
+    "cname": ["myshopify.com", "shopify.com"],
+    "fingerprint": ["Sorry, this shop is currently unavailable"],
+    "status": "Edge case",
+    "notes": "Shopify-butik inte konfigurerad. Kräver manuell verifiering."
+  },
+  {
+    "service": "Amazon CloudFront",
+    "cname": ["cloudfront.net"],
+    "fingerprint": ["The request could not be satisfied", "Bad request"],
+    "status": "Edge case",
+    "notes": "Sällan möjligt men CloudFront-distributions kan hänga."
+  },
+  {
+    "service": "Strikingly",
+    "cname": ["strikingly.com", "s.strikinglydns.com"],
+    "fingerprint": ["page not found", "is available on Strikingly"],
+    "status": "Vulnerable",
+    "notes": "Strikingly-sajt inte konfigurerad."
+  },
+  {
+    "service": "HubSpot",
+    "cname": ["hubspot.com", "hubspot.net"],
+    "fingerprint": ["Domain not found", "does not exist in our system"],
+    "status": "Edge case",
+    "notes": "HubSpot-portal inte kopplad."
+  },
+  {
+    "service": "Surge.sh",
+    "cname": ["surge.sh"],
+    "fingerprint": ["project not found", "surge.sh"],
+    "status": "Vulnerable",
+    "notes": "Surge-projekt inte publicerat."
+  },
+  {
+    "service": "Cargo Collective",
+    "cname": ["cargocollective.com"],
+    "fingerprint": ["404 Not Found"],
+    "status": "Vulnerable",
+    "notes": "Cargo-portfolio inte konfigurerad."
+  },
+  {
+    "service": "Webflow",
+    "cname": ["webflow.io", "proxy.webflow.com"],
+    "fingerprint": ["The page you are looking for doesn't exist or has been moved"],
+    "status": "Edge case",
+    "notes": "Webflow-projekt inte publicerat på denna domän."
+  },
+  {
+    "service": "Intercom",
+    "cname": ["intercom.io", "custom.intercom.help"],
+    "fingerprint": ["Uh oh. That page doesn't exist."],
+    "status": "Edge case",
+    "notes": "Intercom Help Center inte konfigurerat."
+  }
+]
