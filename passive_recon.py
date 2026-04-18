@@ -106,33 +106,60 @@ async def process_base(
     base_result.subdomains.sort(key=lambda s: s.host)
 
     console.print(f"  [*] Querying Wayback Machine (limit: {wayback_limit:,})...")
-    try:
-        cache_key = f"{base}_{wayback_limit}"
+    raw_urls_set: set[str] = set()
+    raw_urls: list[str] = []
+
+    async def _wayback_fetch(target: str, limit: int) -> list[str]:
+        cache_key = f"{target}_{limit}"
         cached_wb = cache.get("wayback", cache_key)
         if cached_wb is not None:
-            raw_urls: list[str] = cached_wb
-            console.print(f"    [dim]↑ wayback: {len(raw_urls):,} (cached)[/dim]")
-        else:
-            raw_urls = await query_wayback(client, base, limit=wayback_limit)
-            cache.set("wayback", cache_key, raw_urls)
-            console.print(f"    [green]✓[/green] wayback: {len(raw_urls):,} URLs")
+            console.print(f"    [dim]↑ wayback/{target}: {len(cached_wb):,} (cached)[/dim]")
+            return cached_wb
+        urls = await query_wayback(client, target, limit=limit)
+        cache.set("wayback", cache_key, urls)
+        console.print(f"    [green]✓[/green] wayback/{target}: {len(urls):,} URLs")
+        return urls
+
+    try:
+        # Query the base domain (covers all subdomains via matchType=domain)
+        base_urls = await _wayback_fetch(base, wayback_limit)
+        for u in base_urls:
+            if u not in raw_urls_set:
+                raw_urls_set.add(u)
+                raw_urls.append(u)
 
         result.source_stats["wayback"] = True
 
-        scoped: list[str] = []
-        for url in raw_urls:
+        # Also query each individual in-scope host that isn't the base itself.
+        # This is important when scope is exact hostnames — Wayback may have
+        # per-subdomain history not returned by the domain-level query.
+        per_sub_limit = min(10000, wayback_limit // max(len(base_result.subdomains), 1))
+        for sub in base_result.subdomains:
+            if sub.host == base:
+                continue
             try:
-                h = urlparse(url).netloc.lower().strip()
-                if h and matches_scope(h, scope_patterns):
-                    scoped.append(url)
-            except Exception:
-                pass
-        base_result.raw_urls = scoped
+                sub_urls = await _wayback_fetch(sub.host, per_sub_limit)
+                for u in sub_urls:
+                    if u not in raw_urls_set:
+                        raw_urls_set.add(u)
+                        raw_urls.append(u)
+            except Exception as e:
+                result.errors.append(f"wayback/{sub.host}: {e}")
 
     except Exception as e:
         result.source_stats["wayback"] = False
         result.errors.append(f"wayback/{base}: {e}")
-        console.print(f"    [yellow]✗[/yellow] wayback: {e}")
+        console.print(f"    [yellow]✗[/yellow] wayback/{base}: {e}")
+
+    scoped: list[str] = []
+    for url in raw_urls:
+        try:
+            h = urlparse(url).netloc.lower().strip()
+            if h and matches_scope(h, scope_patterns):
+                scoped.append(url)
+        except Exception:
+            pass
+    base_result.raw_urls = scoped
 
     base_result.interesting_urls = find_interesting_urls(base_result.raw_urls)
     base_result.tech_stack = fingerprint_tech(base_result.raw_urls)

@@ -6,7 +6,7 @@ async def query_wayback(
 ) -> list[str]:
     url = (
         f"https://web.archive.org/cdx/search/cdx"
-        f"?url=*.{base}&matchType=domain&output=json"
+        f"?url={base}&matchType=domain&output=json"
         f"&collapse=urlkey&fl=original&limit={limit}"
     )
     resp = await client.get(url, timeout=httpx.Timeout(120.0))
