@@ -58,32 +58,50 @@ async def process_base(
     base_result = BaseResult(base=base)
     host_sources: dict[str, set[str]] = {}
 
-    for source_name, query_fn in SUBDOMAIN_SOURCES:
-        try:
-            cached = cache.get(source_name, base)
-            if cached is not None:
-                hosts: set[str] = set(cached)
-                console.print(f"    [dim]↑ {source_name}: {len(hosts)} (cached)[/dim]")
-            else:
-                hosts = await query_fn(client, base)
-                cache.set(source_name, base, list(hosts))
-                console.print(f"    [green]✓[/green] {source_name}: {len(hosts)}")
+    async def _query_sources(target: str, label: str) -> None:
+        for source_name, query_fn in SUBDOMAIN_SOURCES:
+            cache_key_prefix = f"{source_name}:{target}"
+            try:
+                cached = cache.get(source_name, target)
+                if cached is not None:
+                    hosts: set[str] = set(cached)
+                    console.print(f"    [dim]↑ {source_name}/{label}: {len(hosts)} (cached)[/dim]")
+                else:
+                    hosts = await query_fn(client, target)
+                    cache.set(source_name, target, list(hosts))
+                    console.print(f"    [green]✓[/green] {source_name}/{label}: {len(hosts)}")
 
-            for h in hosts:
-                h = h.lower().strip().rstrip(".")
-                if not h:
-                    continue
-                if matches_scope(h, scope_patterns):
-                    host_sources.setdefault(h, set()).add(source_name)
-                elif h not in base_result.out_of_scope:
-                    base_result.out_of_scope.append(h)
+                for h in hosts:
+                    h = h.lower().strip().rstrip(".")
+                    if not h:
+                        continue
+                    if matches_scope(h, scope_patterns):
+                        host_sources.setdefault(h, set()).add(source_name)
+                    elif h not in base_result.out_of_scope:
+                        base_result.out_of_scope.append(h)
 
-            result.source_stats[source_name] = result.source_stats.get(source_name, True)
+                result.source_stats[source_name] = result.source_stats.get(source_name, True)
 
-        except Exception as e:
-            result.source_stats[source_name] = False
-            result.errors.append(f"{source_name}/{base}: {e}")
-            console.print(f"    [yellow]✗[/yellow] {source_name}: {e}")
+            except Exception as e:
+                result.source_stats[source_name] = False
+                result.errors.append(f"{source_name}/{target}: {e}")
+                console.print(f"    [yellow]✗[/yellow] {source_name}/{label}: {e}")
+
+    # Query all sources for the base domain
+    await _query_sources(base, base)
+
+    # Also query each exact scope target that belongs to this base.
+    # Discovers deeper subdomains (v1.api.example.com) and richer passive DNS.
+    exact_targets = [
+        p for p in scope_patterns
+        if not p.startswith("*.")
+        and p != base
+        and (p.endswith("." + base))
+    ]
+    if exact_targets:
+        console.print(f"  [*] Querying sources for {len(exact_targets)} exact scope targets...")
+        for target in exact_targets:
+            await _query_sources(target, target)
 
     if matches_scope(base, scope_patterns):
         host_sources.setdefault(base, set())
